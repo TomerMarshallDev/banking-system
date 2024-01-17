@@ -1,3 +1,5 @@
+import {EnvironmentVariableNotExistError} from "../errors/environment-variable-not-exist-error";
+
 require('dotenv').config();
 
 export interface Config {
@@ -27,6 +29,10 @@ export class ConfigurationParameters {
 
     static getEnvVariable<T = string>(envKey: string): T {
         !ConfigurationParameters.config && this.initConfig();
-        return this.config[envKey] as T;
+        if (this.config[envKey]) {
+            return this.config[envKey] as T;
+        } else {
+            throw new EnvironmentVariableNotExistError(envKey);
+        }
     }
 }

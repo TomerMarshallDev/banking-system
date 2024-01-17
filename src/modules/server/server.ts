@@ -2,18 +2,12 @@ import express, {Application, NextFunction, Request, Response} from "express";
 import * as bodyParser from "body-parser";
 import cors from "cors";
 import {Logger} from "../logger/logger";
-import {Route, routes} from "./routes";
+import {Route, routes} from "../routes/routes";
 import {Result, ValidationError, validationResult} from "express-validator";
 import {PersonDoesNotExistError} from "../errors/person-does-not-exist-error";
 import {AccountDoesNotExistError} from "../errors/account-does-not-exist-error";
 import {AccountBlockedError} from "../errors/account-blocked-error";
-
-const RESPONSE_HEADERS: object = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Credentials': 'true',
-    'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS, DELETE'
-}
+import {HTTP_RESPONSE_HEADERS} from "../consts/consts";
 
 export class Server {
     static createApplication(): Application {
@@ -21,7 +15,7 @@ export class Server {
         app.use(bodyParser.json({limit: '10mb'}));
         app.use(cors());
         app.use((_req: Request, res: Response, next: NextFunction): void => {
-            Object.entries(RESPONSE_HEADERS).forEach(([headerNane, headerValue]: [string, string]) => res.setHeader(headerNane, headerValue));
+            Object.entries(HTTP_RESPONSE_HEADERS).forEach(async ([headerNane, headerValue]: [string, string]) => await res.setHeader(headerNane, headerValue));
             next();
         });
 
@@ -35,7 +29,7 @@ export class Server {
                             action: route.action,
                             queryName: route.queryName
                         });
-                        const result = await (route.controller as any)[route.functionName](requestParameters, res);
+                        const result = await (route.dao as any)[route.functionName](requestParameters, res);
                         res.json(result);
                     } catch (err) {
                         next(err);

@@ -1,4 +1,4 @@
-import {Logger as winstonLogger, format, transports, createLogger} from 'winston';
+import {createLogger, format, Logger as winstonLogger, transports} from 'winston';
 
 export enum LogLevels {
     info = 'info',

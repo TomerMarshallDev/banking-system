@@ -34,6 +34,18 @@ export class QueryHandler {
     }
 
     static isAccountBlocked(accountId: number): string {
-        return `select exists(select from bank.account WHERE account_id = ${accountId} AND not is_active)`;
+        return `SELECT EXISTS(SELECT FROM bank.account WHERE account_id = ${accountId} AND NOT is_active)`;
+    }
+
+    static withdrawlLimitMet(accountId: number, withdrawlAmount: number): string {
+        return `WITH daily_withdrawl_sum AS (SELECT SUM(value) AS current_withdrawl_sum
+                                             FROM bank.transaction
+                                             WHERE transaction.account_id = ${accountId}
+                                               AND transaction_type = 'withdraw'
+                                               AND transaction_date > NOW() - '24h'::INTERVAL)
+                SELECT daily_withdrawl_sum.current_withdrawl_sum + ${withdrawlAmount} > daily_withdrawl_limit AS exists
+                FROM daily_withdrawl_sum,
+                     bank.account
+                WHERE account_id = ${accountId}`
     }
 }
